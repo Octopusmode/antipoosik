@@ -3,7 +3,10 @@ import time
 from pathlib import Path
 import numpy as np
 
-class Darknet():   
+class Darknet():
+    COLORS = [(0, 255, 0), (0, 0, 255), (255, 0, 0),
+          (255, 255, 0), (255, 0, 255), (0, 255, 255)]
+    
     def __init__(self, weights_path, config_path, class_path, conf_threshold, nms_threshold, input_width, input_height):
         self.weights = Path(weights_path)
         self.config = Path(config_path)
@@ -34,8 +37,6 @@ class Darknet():
         return self.classes, self.scores, self.boxes
     
     def render_prediction(self, frame):
-        COLORS = [(0, 255, 0), (0, 0, 255), (255, 0, 0), 
-                  (255, 255, 0), (255, 0, 255), (0, 255, 255)]
         for (classid, score, box) in zip(self.classes, self.scores, self.boxes):
             color = COLORS[int(classid) % len(COLORS)]
             label = "%s : %f" % (self.class_name[classid], score)

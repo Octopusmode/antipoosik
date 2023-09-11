@@ -24,8 +24,8 @@ from time import time
 
 ### Init
 
-detector = Net(weights_path='chairman.weights',
-               config_path='chairman.cfg',
+detector = Net(weights_path='model\yolov7-tiny-person_mod1_best.weights',
+               config_path='model\yolov7-tiny-person_mod.cfg',
                class_path='model/classes.txt',
                conf_threshold=0.5,
                nms_threshold=0.4,
