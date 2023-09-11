@@ -24,15 +24,15 @@ render = FBR(device_id='/dev/fb0', resolution=lcd_resolution)
 blanc_image = np.zeros(shape=(1200, 1600, 3), dtype=np.uint8)
 
 #RTSP Params
-queue = mp.Queue()
-event = mp.Event()
+# queue = mp.Queue()
+# event = mp.Event()
 camlink = 'rtsp://192.168.0.120/snl/live/1/1'
 framerate = 10
 
-source = Stream(camlink, event, queue, framerate=framerate)
-source.start()
+# source = Stream(camlink, event, queue, framerate=framerate)
+# source.start()
 
-vcap = cv2.VideoCapture(filename="rtsp://192.168.0.120/snl/live/1/1")
+vcap = cv2.VideoCapture(filename=camlink)
 
 ### Func
 async def render_async(image, metrics):
@@ -45,8 +45,8 @@ async def main():
     frame = None
     
     while 1:
-        if not queue.empty():
-            cstatus, frame = queue.get()
+        # if not queue.empty():
+        #     cstatus, frame = queue.get()
 
         if frame is None:
             frame = blanc_image
