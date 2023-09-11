@@ -2,7 +2,17 @@ import logging
 from logging import Logger
 import asyncio
 import multiprocessing as mp
-from GstreamerStream import Stream
+from inference import Darknet as Net
+
+# Check available OS
+import platform
+if platform.system() == 'Linux':
+    use_framebuffer = True
+    from key_grabber import get_current_key
+    from evdev import InputDevice
+    device = InputDevice('/dev/input/event6')
+else:
+    use_framebuffer = False
 
 import numpy as np
 import cv2
@@ -14,6 +24,14 @@ from tools import resize_image
 from time import time
 
 ### Init
+
+detector = Net(weights_path='model/yolov7-tiny-person_last.weights',
+               config_path='model/yolov7-tiny-person.cfg',
+               class_path='model/classes.txt',
+               conf_threshold=0.5,
+               nms_threshold=0.4,
+               input_width=416,
+               input_height=416)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -52,6 +70,10 @@ async def main():
             frame = blanc_image
         
         ret, frame = vcap.read()
+        
+        detector.inference(frame=frame)
+        
+        frame = detector.render_prediction(frame=frame)
             
         cycle_start: float = time()
         grabbed_image = frame
@@ -60,7 +82,17 @@ async def main():
             grabbed_image = blanc_image
         
         render_start: float = time()
-        await render_async(image=grabbed_image, metrics=None)
+        if use_framebuffer:
+            await render_async(image=grabbed_image, metrics=None)
+            if get_current_key(device) == 'KEY_KP0':
+                break
+        else:
+            grabbed_image = resize_image(grabbed_image, lcd_resolution)
+            cv2.imshow('frame', grabbed_image)
+            key = cv2.waitKey(1)
+            if key == ord('q'):
+                break
+            
         render_time = time() - render_start
         cycle_time: float = time() - cycle_start
     
