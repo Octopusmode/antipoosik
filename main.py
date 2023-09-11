@@ -24,8 +24,8 @@ from time import time
 
 ### Init
 
-detector = Net(weights_path='model\chairman.weights',
-               config_path='model\chairman.cfg',
+detector = Net(weights_path='model/chairman.weights',
+               config_path='model/chairman.cfg',
                class_path='model/classes.txt',
                conf_threshold=0.5,
                nms_threshold=0.4,
