@@ -17,7 +17,6 @@ else:
 import numpy as np
 import cv2
 
-# import rtsp_grabber as vs
 from fb_renderer import FramebufferRenderer as FBR
 from tools import resize_image
 
@@ -25,8 +24,8 @@ from time import time
 
 ### Init
 
-detector = Net(weights_path='model/yolov7-tiny-person_last.weights',
-               config_path='model/yolov7-tiny-person.cfg',
+detector = Net(weights_path='model\yolov7-tiny-person_mod1_best.weights',
+               config_path='model\yolov7-tiny-person_mod.cfg',
                class_path='model/classes.txt',
                conf_threshold=0.5,
                nms_threshold=0.4,
