@@ -53,7 +53,7 @@ vcap = cv2.VideoCapture(filename=camlink)
 
 ### Func
 async def render_async(image, metrics):
-    await asyncio.sleep(delay= 0.01)
+    await asyncio.sleep(delay= 1 / 15)
     render.render_image(image=image, metrics=metrics)
     
 async def main():
@@ -83,12 +83,15 @@ async def main():
         render_start: float = time()
         if use_framebuffer:
             await render_async(image=grabbed_image, metrics=None)
-            if get_current_key(device) == 'KEY_KP0':
-                break
+            # key = get_current_key(device)
+            # if  key == 'KEY_KP0':
+            #     break
+
         else:
             grabbed_image = resize_image(grabbed_image, lcd_resolution)
             cv2.imshow('frame', grabbed_image)
             key = cv2.waitKey(1)
+            logger.debug('Key windows')
             if key == ord('q'):
                 break
             
