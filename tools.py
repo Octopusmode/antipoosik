@@ -35,9 +35,9 @@ class EventContainer:
         self.threshold_percentage = threshold_percentage
         self.timeout = timeout
 
-    def add_event(self, count=1):
+    def add_event(self):
         current_time = time.time()
-        self.events.append((current_time, count))
+        self.events.append((current_time, 1))
         self.cleanup(current_time)
 
     def cleanup(self, current_time):
@@ -53,6 +53,7 @@ class EventContainer:
 
     def clear_events(self):
         self.events = []
-        
-    def __call__(self):
+
+    def __call__(self, *args, **kwargs):
+        self.cleanup(time.time())
         return self.check_event()
