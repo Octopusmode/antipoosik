@@ -6,7 +6,7 @@ from tools import EventContainer as Event
 
 blank_image = np.zeros(shape=(600, 800, 3), dtype=np.uint8)
 
-AFK = Event(threshold_percentage=0.05, timeout=5)
+AFK = Event(threshold_percentage=0.3, timeout=5)
 
 events_old = []
 events_len_old = 0
@@ -20,13 +20,15 @@ while 1:
     cv2.imshow('frame', blank_image)
     
     if key != -1:
-        AFK.add_event()
+        print(f'{key=}')
+        AFK.add_event(key)
         
     AFK.cleanup(time())
         
     events = AFK.get_events()
     if events != events_old:
-        print(f'{events=}')
+        print(f'{len(events)=}')
+        print('Status: ' + str(AFK.check_event(100)) + '\n')
     events_old = events
     
     events_len = len(events)

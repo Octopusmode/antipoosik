@@ -30,23 +30,26 @@ def resize_image(image: np.ndarray, target_resolution: tuple) -> np.ndarray:
       
         
 class EventContainer:
-    def __init__(self, threshold_percentage=0.5, timeout=5):
+    def __init__(self, threshold_percentage=.5, timeout=5):
         self.events = []
         self.threshold_percentage = threshold_percentage
         self.timeout = timeout
+        self.threshold = 0
 
-    def add_event(self):
+    def add_event(self, value=0):
         current_time = time.time()
-        self.events.append((current_time, 1))
+        self.events.append((current_time, value))
         self.cleanup(current_time)
 
     def cleanup(self, current_time):
-        self.events = [(event_time, count) for event_time, count in self.events if current_time - event_time <= self.timeout]
+        self.events = [(event_time, value) for event_time, value in self.events if current_time - event_time <= self.timeout]
 
-    def check_event(self):
+    def check_event(self, value=0):
         self.cleanup(time.time())
-        threshold = int(len(self.events) * self.threshold_percentage)
-        return len(self.events) >= threshold
+        self.threshold = len(self.events) * self.threshold_percentage
+        print(f'debug: {self.threshold=}')
+        event_count = sum([value for _, value in self.events]) 
+        return event_count >= self.threshold
 
     def get_events(self):
         return self.events
