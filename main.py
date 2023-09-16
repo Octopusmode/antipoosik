@@ -69,12 +69,13 @@ async def main():
     old_count = 0
     person_count = 0
     
+    afk = Event(threshold_percentage=0.05, timeout=5)
+    chait_exist = Event(threshold_percentage=0.05, timeout=5)
+    
     while 1:
         # if not queue.empty():
         #     cstatus, frame = queue.get()
-        
-        AFK = Event(threshold_percentage=0.05, timeout=5)
-        
+                
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         if frame is None:
@@ -83,11 +84,8 @@ async def main():
         ret, frame = vcap.read()
         
         person_count = len(detector.inference(frame=frame)[0])
-        
-        if person_count == 0:
-            AFK.add_event()
-        
-        logger.debug(f'{AFK.get_events()}, {AFK.check_event()}')
+        afk.add_event(person_count)
+        logger.debug(f'{afk.get_events()}, {afk.check_event()}')
         
         ### Chair
 
@@ -98,6 +96,12 @@ async def main():
         chair_image = cv2.medianBlur(chair_image, ksize=3)
         _, chair_image = cv2.threshold(chair_image, 100, 255, cv2.THRESH_BINARY)
         circles = cv2.HoughCircles(chair_image, method=cv2.HOUGH_GRADIENT, dp=1.0, minRadius=23, maxRadius=26, minDist=1000, param1=27, param2=8)
+        
+        ### Chair existing check
+        if len(circles) == 1:
+            chait_exist.add_event(1)
+        else:
+            chait_exist.add_event(0)
         
         ### Render 
         
@@ -113,6 +117,8 @@ async def main():
                          (x+x1, (y+y1)-r), 
                          (x+x1, (y+y1)+r),
                          (255, 0, 0), 2)
+                
+
         
         frame = detector.render_prediction(frame=frame)
         

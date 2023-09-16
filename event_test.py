@@ -22,16 +22,16 @@ while 1:
     if key != -1:
         print(f'{key=}')
         AFK.add_event(key)
+        print(f'{AFK.check_event(100)=}')
         
     AFK.cleanup(time())
         
     events = AFK.get_events()
     if events != events_old:
         print(f'{len(events)=}')
-        print('Status: ' + str(AFK.check_event(100)) + '\n')
     events_old = events
     
     events_len = len(events)
     if events_len != events_len_old:
-        print(f'{events_len=}')
+        print(f'{events_len=} {[value for _, value in AFK.get_events()]}')
     events_len_old = events_len
