@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import time
+from math import ceil
 
 def resize_image(image: np.ndarray, target_resolution: tuple) -> np.ndarray:
     height, width = image.shape[:2]
@@ -46,9 +47,10 @@ class EventContainer:
 
     def check_event(self, value=0):
         self.cleanup(time.time())
-        self.threshold = len(self.events) * self.threshold_percentage
-        print(f'debug: {self.threshold=}')
-        event_count = sum([value for _, value in self.events]) 
+        self.threshold = ceil(len(self.events) * self.threshold_percentage)
+        print(f'debug: {self.threshold=} {len(self.events)=} ')
+        event_count = len([val for _, val in self.events if val == value])
+        print(f'debug: {event_count=} ') 
         return event_count >= self.threshold
 
     def get_events(self):
@@ -60,3 +62,17 @@ class EventContainer:
     def __call__(self, *args, **kwargs):
         self.cleanup(time.time())
         return self.check_event()
+    
+    
+    """
+    events = EventContaiber(threshold_percentage=.5, timeout=5)
+    
+    while 1:
+        if some_action:
+            events.add_event(value)
+        
+        if some_checks:
+            if events.check_event(value):
+                do_something()
+        
+    """
