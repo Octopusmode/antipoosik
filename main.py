@@ -76,10 +76,9 @@ async def main():
     chair_status_old = False
     alarm_status = False
     alarm_status_old = False
-    alarm_triggered = False
-    alarm_triggered_old = False
-    
-    afk_timer = Timer(5)
+    afk_alarm = False
+    afk_alarm_old = False
+    afk_timer = .0
     
     while 1:
         # if not queue.empty():
@@ -142,26 +141,16 @@ async def main():
         afk_status_old = afk_status
         chair_status_old = chair_status
         
-        alarm_status = afk_status and not chair_status
-        
-        if alarm_status != alarm_status_old:
-            logging.info(f'{current_time} {alarm_status=}')
-            
-        alarm_status_old = alarm_status
-        
-        if alarm_status:
-            afk_timer.start()
-            if alarm_status != alarm_status_old:
-                logging.info(f'{current_time} {afk_timer.is_running()=}')
+        if afk_status and not chair_status:
+            afk_alarm = True
         else:
-            afk_timer.stop()
-            if alarm_status != alarm_status_old:
-                logging.info(f'{current_time} {afk_timer.is_running()=}')
-        
-        alarm_triggered = afk_timer.is_triggered()        
-        if alarm_triggered != alarm_triggered_old:
-            logging.info(f'{current_time} {afk_timer.is_triggered()=}')
-        alarm_triggered_old = alarm_triggered
+            afk_alarm = False
+            afk_timer = .0
+            
+              
+        if afk_alarm != afk_alarm_old:
+            logging.info(f'{current_time} {afk_alarm=}')
+        afk_alarm_old = afk_alarm
         
         ### Displaying
             

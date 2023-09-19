@@ -84,37 +84,57 @@ class Timer():
     """
     Timer class
     """
-    def __init__(self, timeout=5):
+    def __init__(self, name, timeout=5):
         self.starting_time = time.time()
-        self.timeout = timeout
+        self._timeout = float(timeout)
         self.elapsed_time = .0
         self.triggered = False
         self.running = False
-        
+        self.name = name
+    
+    def check_timer_running(func):
+        def wrapper(self, *args, **kwargs):
+            if func.__name__ == 'start' and self.running:
+                logger.info(f'Timer {self.name} is already running')
+            elif func.__name__ == 'stop' and not self.running:
+                pass
+                # logger.info(f'Timer {self.name} is nor running')
+            else:
+                return func(self, *args, **kwargs)
+        return wrapper
+    
+    @check_timer_running        
     def start(self):
         self.triggered = False
         self.running = True
-        if not self.running:
-            self.starting_time = time.time()
-            logger.info(f'{self.starting_time=}')
-        
+        self.starting_time = time.time()
+        logger.info(f'{self.starting_time=}' + 'Timer {self.name} started')
+    
+    @check_timer_running
     def stop(self):
         self.running = False
         self.triggered = False
-        
-    def set_timeout(self, timeout):
-        self.timeout = timeout
-        
+        logger.info(f'{self.starting_time=}' + 'Timer {self.name} stopped')
+    
+    @property
+    def timeout(self):
+        return self._timeout
+    
+    @timeout.setter
+    def timeout(self, value):
+        self._timeout = value
+    
+    @check_timer_running
     def is_triggered(self):
         self.elapsed_time = time.time() - self.starting_time
         if self.elapsed_time > self.timeout:
             self.triggered = True
-            return True
-        return False
+        return self.triggered
     
     def is_running(self):
         return self.running
     
+    @check_timer_running
     def get_elapsed_time(self):
         return self.elapsed_time
     
