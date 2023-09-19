@@ -25,6 +25,7 @@ else:
 
 
 from tools import resize_image, EventContainer as Event
+from tools import Timer
 
 from time import time
 from datetime import datetime
@@ -69,8 +70,16 @@ async def main():
     old_count = 0
     person_count = 0
     
-    afk = Event(threshold_percentage=0.05, timeout=5)
+    afk = Event(threshold_percentage=0.20, timeout=5)
     chait_exist = Event(threshold_percentage=0.05, timeout=5)
+    afk_status_old = False
+    chair_status_old = False
+    alarm_status = False
+    alarm_status_old = False
+    alarm_triggered = False
+    alarm_triggered_old = False
+    
+    afk_timer = Timer(5)
     
     while 1:
         # if not queue.empty():
@@ -85,7 +94,7 @@ async def main():
         
         person_count = len(detector.inference(frame=frame)[0])
         afk.add_event(person_count)
-        logger.debug(f'{afk.get_events()}, {afk.check_event()}')
+        # logger.debug(f'{afk.get_events()}, {afk.check_event()}')
         
         ### Chair
 
@@ -93,15 +102,11 @@ async def main():
         
         chair_image = frame[y1:y2, x1:x2]
         chair_image = cv2.cvtColor(chair_image, cv2.COLOR_BGR2GRAY)
-        chair_image = cv2.medianBlur(chair_image, ksize=3)
-        _, chair_image = cv2.threshold(chair_image, 100, 255, cv2.THRESH_BINARY)
+        chair_image = cv2.medianBlur(chair_image, ksize=5)
+        _, chair_image = cv2.threshold(chair_image, 50, 255, cv2.THRESH_BINARY)
         circles = cv2.HoughCircles(chair_image, method=cv2.HOUGH_GRADIENT, dp=1.0, minRadius=23, maxRadius=26, minDist=1000, param1=27, param2=8)
         
-        ### Chair existing check
-        if len(circles) == 1:
-            chait_exist.add_event(1)
-        else:
-            chait_exist.add_event(0)
+
         
         ### Render 
         
@@ -117,12 +122,48 @@ async def main():
                          (x+x1, (y+y1)-r), 
                          (x+x1, (y+y1)+r),
                          (255, 0, 0), 2)
+
+            chait_exist.add_event(1)
+        else:
+            chait_exist.add_event(0)
                 
 
         
         frame = detector.render_prediction(frame=frame)
         
-        ###
+        ### Logic
+        
+        afk_status = afk.check_event(0)
+        chair_status = chait_exist.check_event(1)
+        if afk_status != afk_status_old:
+            logger.debug(f'{current_time} {afk_status=}')
+        if chair_status != chair_status_old:
+            logger.debug(f'{current_time} {chair_status=}')
+        afk_status_old = afk_status
+        chair_status_old = chair_status
+        
+        alarm_status = afk_status and not chair_status
+        
+        if alarm_status != alarm_status_old:
+            logging.info(f'{current_time} {alarm_status=}')
+            
+        alarm_status_old = alarm_status
+        
+        if alarm_status:
+            afk_timer.start()
+            if alarm_status != alarm_status_old:
+                logging.info(f'{current_time} {afk_timer.is_running()=}')
+        else:
+            afk_timer.stop()
+            if alarm_status != alarm_status_old:
+                logging.info(f'{current_time} {afk_timer.is_running()=}')
+        
+        alarm_triggered = afk_timer.is_triggered()        
+        if alarm_triggered != alarm_triggered_old:
+            logging.info(f'{current_time} {afk_timer.is_triggered()=}')
+        alarm_triggered_old = alarm_triggered
+        
+        ### Displaying
             
         cycle_start: float = time()
         grabbed_image = frame
@@ -147,6 +188,7 @@ async def main():
         render_time = time() - render_start
         cycle_time: float = time() - cycle_start
     
-    render.close()
+    if use_framebuffer:
+        render.close()
     
 asyncio.run(main())

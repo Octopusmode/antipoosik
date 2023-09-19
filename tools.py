@@ -2,6 +2,11 @@ import cv2
 import numpy as np
 import time
 from math import ceil
+import logging
+from logging import Logger
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(name=__name__)
 
 def resize_image(image: np.ndarray, target_resolution: tuple) -> np.ndarray:
     height, width = image.shape[:2]
@@ -48,9 +53,7 @@ class EventContainer:
     def check_event(self, value=0):
         self.cleanup(time.time())
         self.threshold = ceil(len(self.events) * self.threshold_percentage)
-        print(f'debug: {self.threshold=} {len(self.events)=} ')
         event_count = len([val for _, val in self.events if val == value])
-        print(f'debug: {event_count=} ') 
         return event_count >= self.threshold
 
     def get_events(self):
@@ -76,3 +79,57 @@ class EventContainer:
                 do_something()
         
     """
+    
+class Timer():
+    """
+    Timer class
+    """
+    def __init__(self, timeout=5):
+        self.starting_time = time.time()
+        self.timeout = timeout
+        self.elapsed_time = .0
+        self.triggered = False
+        self.running = False
+        
+    def start(self):
+        self.triggered = False
+        self.running = True
+        if not self.running:
+            self.starting_time = time.time()
+            logger.info(f'{self.starting_time=}')
+        
+    def stop(self):
+        self.running = False
+        self.triggered = False
+        
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+        
+    def is_triggered(self):
+        self.elapsed_time = time.time() - self.starting_time
+        if self.elapsed_time > self.timeout:
+            self.triggered = True
+            return True
+        return False
+    
+    def is_running(self):
+        return self.running
+    
+    def get_elapsed_time(self):
+        return self.elapsed_time
+    
+"""
+from time import time, sleep
+
+if __name__ == '__main__':
+    timer = Timer()
+    timer.set_timeout(5)
+    timer.start()
+    while 1:
+        if timer.is_triggered():
+            print('Timer triggered')
+            timer.stop()
+            timer.start()
+        print(timer.get_elapsed_time())
+        sleep(1)
+"""
