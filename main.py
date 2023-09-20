@@ -4,8 +4,21 @@ import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
 
+import dotenv
+from dotenv import load_dotenv
+from aiogram import Bot
+
 import numpy as np
 import cv2
+
+import os
+
+load_dotenv()
+
+__TOKEN__ = os.getenv('TOKEN')
+bot = Bot(token=__TOKEN__)
+del __TOKEN__
+
 
 # Check available OS
 import platform
@@ -79,6 +92,9 @@ async def main():
     afk_alarm = False
     afk_alarm_old = False
     afk_timer = .0
+    alarm_timeout = 10
+    afk_timer_status = False
+    afk_timer_status_old = True
     
     while 1:
         # if not queue.empty():
@@ -146,11 +162,27 @@ async def main():
         else:
             afk_alarm = False
             afk_timer = .0
+        
+        if afk_alarm and not afk_timer:  # int(afk_timer) > 0
+            afk_timer = time()
             
+        if time() - afk_timer > alarm_timeout:
+            afk_alarm = True
+        else:
+            afk_alarm = False
               
         if afk_alarm != afk_alarm_old:
             logging.info(f'{current_time} {afk_alarm=}')
         afk_alarm_old = afk_alarm
+        
+        afk_timer_status = int(afk_timer) > 0
+        
+        # if afk_timer_status:
+        #     logging.info(f'round{afk_timer=} / round{time()=} / {time()-afk_timer=}')
+        
+        if afk_timer_status != afk_timer_status_old:
+            logging.info(f'ALARM {afk_timer_status=}')
+        afk_timer_status_old = afk_timer_status
         
         ### Displaying
             
@@ -179,5 +211,7 @@ async def main():
     
     if use_framebuffer:
         render.close()
+        
+    vcap.release()
     
 asyncio.run(main())
