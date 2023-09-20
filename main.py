@@ -4,21 +4,14 @@ import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
 
-import dotenv
-from dotenv import load_dotenv
-from aiogram import Bot
-
 import numpy as np
 import cv2
 
 import os
 
+# Token for bot
+from dotenv import load_dotenv
 load_dotenv()
-
-__TOKEN__ = os.getenv('TOKEN')
-bot = Bot(token=__TOKEN__)
-del __TOKEN__
-
 
 # Check available OS
 import platform
