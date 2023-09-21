@@ -7,7 +7,7 @@ class TelegramBot:
     def __init__(self, token: str = None):
         self.__TOKEN__ = token
         self.bot = Bot(token=self.__TOKEN__)
-        self.dp = Dispatcher(self.bot)
+        self.dp = Dispatcher()
         self.halt_sending = False
     
     async def start(self, message: types.Message):

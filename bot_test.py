@@ -8,8 +8,6 @@ import cv2, numpy as np
 import time
 from dotenv import load_dotenv
 
-load_dotenv()
-
 class AlarmBot:
       # Замените на свой chat_id
     
@@ -36,7 +34,7 @@ class AlarmBot:
                 message_text = "Прошло 15 минут. Продолжаю отправку."
                 image_path = 'your_image.jpg'  # Замените на путь к вашему изображению
                 await self.send_message_with_image(chat_id, message_text, image_path)
-                await asyncio.sleep(n)  # Замените n на интервал отправки в секундах
+                await asyncio.sleep(30)  # Замените n на интервал отправки в секундах
             else:
                 await asyncio.sleep(60)  # Проверяем состояние каждую минуту
 
@@ -62,7 +60,8 @@ class AlarmBot:
         executor.start_polling(self.dp, skip_updates=True, on_startup=on_startup)
 
 def main_bot_thread():
-    bot_token = os.getenv("BOT_TOKEN")
+    load_dotenv()
+    bot_token = os.getenv("TOKEN")
     bot = AlarmBot(bot_token)
     bot.run()
 
@@ -71,8 +70,6 @@ if __name__ == '__main__':
     bot_thread = threading.Thread(target=main_bot_thread)
     bot_thread.start()
     
-    image = 
-
     # Основной цикл программы
     while True:
         # Ваша основная логика здесь

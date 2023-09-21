@@ -60,15 +60,15 @@ logger = logging.getLogger(name=__name__)
 blanc_image = np.zeros(shape=(1200, 1600, 3), dtype=np.uint8)
 
 #RTSP Params
-queue = mp.Queue()
-event = mp.Event()
+# queue = mp.Queue()
+# event = mp.Event()
 camlink = 'rtsp://192.168.0.120/snl/live/1/1'
 framerate = 10
 
-source = Stream(camlink, event, queue, framerate=framerate)
-source.start()
+# source = Stream(camlink, event, queue, framerate=framerate)
+# source.start()
 
-# vcap = cv2.VideoCapture(filename=camlink)
+vcap = cv2.VideoCapture(filename=camlink)
 
 ### Func
 async def render_async(image, metrics):
@@ -97,21 +97,18 @@ async def main():
     afk_timer_status = False
     afk_timer_status_old = True
     
-    while 1:
-        # if not queue.empty():
-        #     cstatus, frame = queue.get()
-                
+    while 1:    
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        if not queue.empty():
-            cstatus, frame = queue.get()
-        else:
-            logger.warning('Queue missing!')
+        # if not queue.empty():
+        #     cstatus, frame = queue.get()
+        # else:
+        #     logger.warning('Queue missing!')
+        
+        ret, frame = vcap.read()
 
         if frame is None:
             frame = blanc_image
-        
-        # ret, frame = vcap.read()
         
         person_count = len(detector.inference(frame=frame)[0])
         afk.add_event(person_count)
