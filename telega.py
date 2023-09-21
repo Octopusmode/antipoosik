@@ -4,8 +4,8 @@ import os
 
 
 class TelegramBot:
-    def __init__(self):
-        self.__TOKEN__ = os.getenv('TOKEN')
+    def __init__(self, token: str = None):
+        self.__TOKEN__ = token
         self.bot = Bot(token=self.__TOKEN__)
         self.dp = Dispatcher(self.bot)
         self.halt_sending = False

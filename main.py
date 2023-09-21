@@ -3,6 +3,8 @@ from logging import Logger
 import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
+import telega
+from telega import TelegramBot
 
 import numpy as np
 import cv2
@@ -12,6 +14,9 @@ import os
 # Token for bot
 from dotenv import load_dotenv
 load_dotenv()
+
+bot = TelegramBot(token=os.getenv('TOKEN'))
+
 
 # Check available OS
 import platform
