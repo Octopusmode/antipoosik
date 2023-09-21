@@ -5,6 +5,7 @@ import multiprocessing as mp
 from inference import Darknet as Net
 import telega
 from telega import TelegramBot
+from GstreamerStream import Stream
 
 import numpy as np
 import cv2
@@ -15,7 +16,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-bot = TelegramBot(token=os.getenv('TOKEN'))
+# bot = TelegramBot(token=os.getenv('TOKEN'))
 
 
 # Check available OS
@@ -59,15 +60,15 @@ logger = logging.getLogger(name=__name__)
 blanc_image = np.zeros(shape=(1200, 1600, 3), dtype=np.uint8)
 
 #RTSP Params
-# queue = mp.Queue()
-# event = mp.Event()
+queue = mp.Queue()
+event = mp.Event()
 camlink = 'rtsp://192.168.0.120/snl/live/1/1'
 framerate = 10
 
-# source = Stream(camlink, event, queue, framerate=framerate)
-# source.start()
+source = Stream(camlink, event, queue, framerate=framerate)
+source.start()
 
-vcap = cv2.VideoCapture(filename=camlink)
+# vcap = cv2.VideoCapture(filename=camlink)
 
 ### Func
 async def render_async(image, metrics):
@@ -75,6 +76,8 @@ async def render_async(image, metrics):
     render.render_image(image=image, metrics=metrics)
     
 async def main():
+
+    
     render_time: float = .0
     cycle_time: float = .0
     frame = None
@@ -100,10 +103,15 @@ async def main():
                 
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+        if not queue.empty():
+            cstatus, frame = queue.get()
+        else:
+            logger.warning('Queue missing!')
+
         if frame is None:
             frame = blanc_image
         
-        ret, frame = vcap.read()
+        # ret, frame = vcap.read()
         
         person_count = len(detector.inference(frame=frame)[0])
         afk.add_event(person_count)
