@@ -3,8 +3,6 @@ from logging import Logger
 import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
-import telega
-from telega import TelegramBot
 from GstreamerStream import Stream
 
 import numpy as np
@@ -13,28 +11,10 @@ import cv2
 import os
 
 # Token for bot
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 # bot = TelegramBot(token=os.getenv('TOKEN'))
-
-
-# Check available OS
-import platform
-if platform.system() == 'Linux':
-    from fb_renderer import FramebufferRenderer as FBR
-    use_framebuffer = True
-    from key_grabber import get_current_key
-    from evdev import InputDevice
-    device = InputDevice('/dev/input/event6')
-    lcd_resolution = (1088, 1920)
-    render = FBR(device_id='/dev/fb0', resolution=lcd_resolution)
-    
-else:
-    use_framebuffer = False
-    cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('frame', 1280, 720)
-
 
 from tools import resize_image, EventContainer as Event
 from tools import Timer
@@ -196,24 +176,14 @@ async def main():
             grabbed_image = blanc_image
         
         render_start: float = time()
-        if use_framebuffer:
-            grabbed_image = resize_image(grabbed_image, lcd_resolution)
-            await render_async(image=grabbed_image, metrics=None)
-            # key = get_current_key(device)
-            # if  key == 'KEY_KP0':
-            #     break
 
-        else:
-            cv2.imshow('frame', grabbed_image)
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                break
+        key = get_current_key(device)
+        if  key == 'KEY_KP0':
+            break
+
             
         render_time = time() - render_start
         cycle_time: float = time() - cycle_start
-    
-    if use_framebuffer:
-        render.close()
         
     vcap.release()
     
