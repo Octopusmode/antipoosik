@@ -12,8 +12,6 @@ RUN useradd --uid ${USER_ID} --gid ${USER_ID} --shell /bin/sh -m --skel /dev/nul
 WORKDIR /srv/${PROJECT_NAME}
 RUN chown -R ${USER_ID}:${GROUP_ID} /srv/${PROJECT_NAME}
 
-USER ${REMOTE_USER}
-
 ENV VIRTUAL_ENV=/srv/${PROJECT_NAME}/.venv
 ENV PATH="$VIRTUAL_ENV/bin:${PATH}"
 ENV PYTHONPATH=/srv/${PROJECT_NAME}
@@ -36,5 +34,6 @@ RUN python3 -m pip install --no-cache -r requirements.txt
 # RUN pip install pycairo
 # RUN pip install PyGObject
 
+USER ${REMOTE_USER}
 
 CMD [ "/bin/sleep", "3600" ]
