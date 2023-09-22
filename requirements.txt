@@ -1,0 +1,7 @@
+opencv-python==4.8.0.76
+evdev==1.6.1
+pycairo==1.24.0
+PyGObject==3.46.0
+aiogram=3.0.0
+
+
