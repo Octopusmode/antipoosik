@@ -1,0 +1,14 @@
+{
+	"name": "Docker for Antipoopsik project",
+	"image": "antipoopsik:dev",
+	"runArgs": [
+		"--init",
+		"--privileged"
+	],
+	"overrideCommand": true,
+	"workspaceMount": "source=${localWorkspaceFolder}/antipoopsik,target=/app/antipoopsik/antipoopsik,type=bind,consistency=delegated",
+	"workspaceFolder": "/app/antipoopsik",
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "antipoopsik"
+}
