@@ -20,11 +20,14 @@ ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt /app/${PROJECT_NAME}
 
-
 RUN python3 -m pip install --upgrade wheel pip setuptools
 RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
 RUN python3 -m pip install --no-cache -r requirements.txt
 
+COPY . /app/${PROJECT_NAME}/
+
 USER ${REMOTE_USER}
 
-CMD [ "/bin/sleep", "3600" ]
+# CMD [ "/bin/sleep", "3600" ]
+
+CMD [ "python3", "main.py" ]
