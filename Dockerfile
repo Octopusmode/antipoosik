@@ -20,6 +20,7 @@ ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt /app/${PROJECT_NAME}
 
+
 RUN python3 -m pip install --upgrade wheel pip setuptools
 RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
 RUN python3 -m pip install --no-cache -r requirements.txt
