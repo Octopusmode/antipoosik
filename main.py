@@ -23,8 +23,13 @@ from telebot import Telebot
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
 
-bot = Bot(token='YOUR_BOT_TOKEN')
-telebot = Telebot(bot)
+bot = Bot(os.getenv('BOT_TOKEN'))
+chat_id = os.getenv('CHAT_ID')
+dp = Dispatcher(bot)
+telebot = Telebot(bot, dp, chat_id)
+
+dp.register_message_handler(telebot.handle_message)
+dp.register_message_handler(telebot.start, commands=['start'])
 
 WORKING_RESOLUTION_HWC = (720, 1280, 3)
 
@@ -61,9 +66,7 @@ camlink = os.getenv('RTSP_LINK')
 
 stream = Grabber(in_stream=camlink, timeout=10)
 
-async def main():
-    await dp.start_polling()
-    
+async def main():  
     cycle_time: float = .0
     frame=None
     # telebot.bot.send_hello('290302339')
@@ -82,10 +85,11 @@ async def main():
     alarm_timeout = 10
     afk_timer_status = False
     afk_timer_status_old = True
-    await telebot.send_hello('290302339')
     stream.start(framerate=framerate, timeout=30)
     
     while True:
+        await dp.start_polling()
+        
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cycle_start = time.time()
         
@@ -159,7 +163,7 @@ async def main():
                 img_data = encoded_image.tobytes()
                 msg = 'Опасность проникновения пупсика!'
                 user_id='290302339'
-                await telebot.send_msg(msg, user_id, img_data) 
+                # await telebot.send_msg(msg, user_id, img_data) 
         afk_alarm_old = afk_alarm
         
         afk_timer_status = int(afk_timer) > 0
