@@ -22,6 +22,7 @@ class SubprocessGrabber():
         self.max_dublicates = max_dublicates
         ret = False
         self.width, self.height = 0, 0
+        self.process = None
         
         # Getting resolution of input video
         cap = cv2.VideoCapture(in_stream)
@@ -53,7 +54,11 @@ class SubprocessGrabber():
         
     def get_frame(self):
         start_time = time.time()
+        
+        # Read raw frame from stdout PIPE
         raw_frame = self.process.stdout.read(self.width*self.height*3)
+        self.grab_time = time.time() - start_time
+        
         if len(raw_frame) != (self.width*self.height*3):
             logger.error('Error reading frame!')
             return None
@@ -68,14 +73,48 @@ class SubprocessGrabber():
                     self.dublicate_count = 0
             frame = np.frombuffer(raw_frame, dtype=np.uint8).reshape((self.height, self.width, 3))
             self.prev_frame = frame
-            self.grab_time = time.time() - start_time
             return frame
         
+    def stop(self, timeout=10):
+        self.process.terminate()
+        try:
+            self.process.wait(timeout=timeout)
+        except sp.TimeoutExpired:
+            self.process.kill()
+            self.process.wait()
+
+    def get_grab_time(self):
+        return self.grab_time
+    
     def get_returncode(self):
         if self.process.poll() is not None:
             return self.process.returncode
         else:
             return None
-
-
         
+    def is_alive(self):
+        return self.process.poll() is None
+    
+    def get_width(self):
+        return self.width
+    
+    def get_height(self):
+        return self.height
+    
+    def get_framerate(self):
+        return self.framerate
+    
+    def get_max_dublicates(self):
+        return self.max_dublicates
+    
+    def set_max_dublicates(self, max_dublicates):
+        self.max_dublicates = max_dublicates
+        
+    def is_grabbed(self):
+        return self.prev_frame is not None
+    
+    def get_prev_frame(self):
+        return self.prev_frame
+    
+    def is_grabbing(self):
+        return self.process.poll() is None
