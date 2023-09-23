@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
 
 class SubprocessGrabber():
-    def __init__(self, in_stream, width, height, timeout=10, max_dublicates=None):
+    def __init__(self, in_stream, timeout=10, max_dublicates=None):
         self.in_stream = in_stream
-        self.width = width
-        self.height = height
+        self.width = 0
+        self.height = 0
         self.grab_time = .0
         self.prev_frame = None
         self.dublicate_count = 0
@@ -25,9 +25,9 @@ class SubprocessGrabber():
         self.process = None
         
         # Getting resolution of input video
-        cap = cv2.VideoCapture(in_stream)
+        cap = cv2.VideoCapture(self.in_stream)
         start_time = time.time()
-        while not ret and not width or not height:
+        while not ret and (not self.width or not self.height):
             ret, _ = cap.read()
             # Get resolution of input video
             self.width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))

@@ -42,6 +42,6 @@ class Darknet():
             cv.rectangle(frame, box, color, 2)
             cv.putText(frame, label, (box[0], box[1]-10), cv.FONT_HERSHEY_SIMPLEX, 0.5, color, 2) 
         
-        cv.putText(frame, f'{self.weights_name} Inference: {self.inference_time:.6f}', (20, 50),
-                   cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        # cv.putText(frame, f'{self.weights_name} Inference: {self.inference_time:.6f}', (20, 50),
+        #            cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return frame
