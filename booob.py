@@ -12,7 +12,6 @@ class Telebot:
         self.chat_id = chat_id
 
     async def send_hello(self):
-        logging.info(f'Hello from telebot')
         await self.bot.send_message(self.chat_id, text='Poopsik says hello')
 
     async def send_msg(self, msg, user_id, img_data):
@@ -40,9 +39,6 @@ dp.register_message_handler(telebot.start, commands=['start'])
 
 async def main():
     await dp.start_polling()
-    while True:
-        await telebot.send_hello()
-        await asyncio.sleep(10)
 
 if __name__ == '__main__':
     asyncio.run(main())

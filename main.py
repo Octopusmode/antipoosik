@@ -1,10 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 import logging
 import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
-
-from dotenv import load_dotenv
 
 import numpy as np
 import cv2
@@ -14,12 +15,16 @@ from tools import resize_image, EventContainer as Event
 import time
 from datetime import datetime
 
-from telebot import Telebot
-
 from rtsp_grabber import SubprocessGrabber as Grabber
+
+from aiogram import Bot, Dispatcher
+from telebot import Telebot
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
+
+bot = Bot(token='YOUR_BOT_TOKEN')
+telebot = Telebot(bot)
 
 WORKING_RESOLUTION_HWC = (720, 1280, 3)
 
@@ -52,20 +57,16 @@ blank_image = cv2.putText(img=blanc_image, text='No image', org=(50, 150), fontF
 camlink = os.getenv('RTSP_LINK')
 framerate = 10
 
-
-# Bot init
-load_dotenv()
-
-bot = Telebot(os.getenv('BOT_TOKEN'))
-
 camlink = os.getenv('RTSP_LINK')
 
 stream = Grabber(in_stream=camlink, timeout=10)
 
 async def main():
+    await dp.start_polling()
+    
     cycle_time: float = .0
     frame=None
-    bot.send_hello()
+    # telebot.bot.send_hello('290302339')
     person_count: int = 0    
     afk = Event(threshold_percentage=.2, timeout=5)
     chait_exist = Event(threshold_percentage=0.05, timeout=5)
@@ -81,7 +82,7 @@ async def main():
     alarm_timeout = 10
     afk_timer_status = False
     afk_timer_status_old = True
-     
+    await telebot.send_hello('290302339')
     stream.start(framerate=framerate, timeout=30)
     
     while True:
@@ -153,6 +154,12 @@ async def main():
             
         if afk_alarm != afk_alarm_old:
             logging.info(f'{current_time} {afk_alarm=}')
+            success, encoded_image = cv2.imencode('.jpg', frame)
+            if success:
+                img_data = encoded_image.tobytes()
+                msg = 'Опасность проникновения пупсика!'
+                user_id='290302339'
+                await telebot.send_msg(msg, user_id, img_data) 
         afk_alarm_old = afk_alarm
         
         afk_timer_status = int(afk_timer) > 0
