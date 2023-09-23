@@ -1,8 +1,11 @@
+import os
 import logging
 import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
 from gs_stream import Stream
+
+from dotenv import load_dotenv
 
 import numpy as np
 import cv2
@@ -11,6 +14,8 @@ from tools import resize_image, EventContainer as Event
 
 from time import time
 from datetime import datetime
+
+from telebot import Telebot
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -35,15 +40,19 @@ queue = mp.Queue()
 event = mp.Event()
 camlink = 'rtsp://192.168.0.120/snl/live/1/1'
 framerate = 10
-# RTSP stream initialization
+# RTSP stream init
 source = Stream(camlink, event, queue, framerate=framerate)
 source.start()
 
+# Bot init
+load_dotenv()
+
+bot = Telebot(os.getenv('BOT_TOKEN'))
 
 async def main():
     cycle_time: float = .0
     frame=None
-    
+    bot.send_hello()
     person_count: int = 0    
     afk = Event(threshold_percentage=.2, timeout=5)
     chait_exist = Event(threshold_percentage=0.05, timeout=5)
@@ -71,9 +80,16 @@ async def main():
             frame = queue.get()
         else:
             frame = blank_image
-            logger.warning('No image')
+            logger.warning(f'{current_time} No image')
             await asyncio.sleep(delay=1)
             continue
+        
+asyncio.run(main())
+        
+        
+        
+        
+        
         
         
         

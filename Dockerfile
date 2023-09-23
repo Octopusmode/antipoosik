@@ -5,7 +5,7 @@ ARG GROUP_ID=5000
 ARG USER_ID=5000
 
 RUN apt update
-RUN apt install -y python3-dev python3-pip python3-gi python3-gst-1.0 libgirepository1.0-dev libcairo2-dev python3-venv
+RUN apt install -y python3-dev python3-pip python3-gi python3-gst-1.0 libgirepository1.0-dev libcairo2-dev python3-venv gstreamer1.0-tools gstreamer1.0-plugins-base-apps
 
 RUN groupadd --gid ${GROUP_ID} ${PROJECT_NAME}
 RUN useradd --uid ${USER_ID} --gid ${USER_ID} --shell /bin/sh -m --skel /dev/null /app/${PROJECT_NAME}

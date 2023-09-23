@@ -273,7 +273,10 @@ class Stream(mp.Process):
         """
         # Start playing
 
-        self.create_stream()
+        status = self.create_stream()
+        
+        if not status:
+            return False
 
         ret = self.pipeline.set_state(Gst.State.PLAYING)
         if ret == Gst.StateChangeReturn.FAILURE:
