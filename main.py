@@ -3,7 +3,6 @@ import logging
 import asyncio
 import multiprocessing as mp
 from inference import Darknet as Net
-from gs_stream import Stream
 
 from dotenv import load_dotenv
 
@@ -36,13 +35,9 @@ blanc_image = np.zeros(shape=WORKING_RESOLUTION_HWC, dtype=np.uint8)
 blank_image = cv2.putText(img=blanc_image, text='No image', org=(50, 150), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, color=(255, 255, 255), thickness=2)
 
 # RTSP Params
-queue = mp.Queue()
-event = mp.Event()
-camlink = 'rtsp://192.168.0.120/snl/live/1/1'
+camlink = os.getenv('RTSP_LINK')
 framerate = 10
-# RTSP stream init
-source = Stream(camlink, event, queue, framerate=framerate)
-source.start()
+
 
 # Bot init
 load_dotenv()
@@ -78,6 +73,7 @@ async def main():
         cycle_time = time()
         if not queue.empty():
             frame = queue.get()
+            logger.warning(f'{current_time} Image grabbed')
         else:
             frame = blank_image
             logger.warning(f'{current_time} No image')
