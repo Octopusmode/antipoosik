@@ -66,7 +66,18 @@ camlink = os.getenv('RTSP_LINK')
 
 stream = Grabber(in_stream=camlink, timeout=10)
 
-async def main():  
+def start_polling():
+    dp.start_polling()
+    
+async def send_alarm(frame, msg='!', user_id=os.getenv('CHAT_ID')):
+    success, encoded_image = cv2.imencode('.jpg', frame)
+    if success:
+        img_data = encoded_image.tobytes()
+        await telebot.send_msg(msg, user_id, img_data) 
+
+async def main():
+    pooling = mp.Process(target=start_polling)
+    pooling.start()
     cycle_time: float = .0
     frame=None
     # telebot.bot.send_hello('290302339')
@@ -87,13 +98,15 @@ async def main():
     afk_timer_status_old = True
     stream.start(framerate=framerate, timeout=30)
     
-    while True:
-        await dp.start_polling()
-        
+    while True:        
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cycle_start = time.time()
         
-        frame = stream.get_frame().copy()
+        grabbed_frame = stream.get_frame()
+        
+        # TODO починить пустой тип кадра
+        if type(frame) == np.ndarray:
+            frame = grabbed_frame.copy()
         
         if frame is None:
             frame = blank_image
@@ -139,6 +152,7 @@ async def main():
         chair_status = chait_exist.check_event(1)
         if afk_status != afk_status_old or chair_status != chair_status_old:
             logger.debug(f'{current_time} Some thing changed: Person leave={afk_status} Chair in place={chair_status}\n')
+            await send_alarm(frame, msg='Что-то изменилось')
         afk_status_old = afk_status
         chair_status_old = chair_status
         
@@ -158,12 +172,7 @@ async def main():
             
         if afk_alarm != afk_alarm_old:
             logging.info(f'{current_time} {afk_alarm=}')
-            success, encoded_image = cv2.imencode('.jpg', frame)
-            if success:
-                img_data = encoded_image.tobytes()
-                msg = 'Опасность проникновения пупсика!'
-                user_id='290302339'
-                # await telebot.send_msg(msg, user_id, img_data) 
+            await send_alarm(frame, msg='Пупсиковая опасность!!!')
         afk_alarm_old = afk_alarm
         
         afk_timer_status = int(afk_timer) > 0
@@ -185,6 +194,8 @@ async def main():
         
         render_time = time.time() - render_start
         cycle_time = time.time() - cycle_start
+        
+        pooling.join
 
 
 asyncio.run(main())

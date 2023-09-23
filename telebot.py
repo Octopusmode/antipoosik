@@ -17,7 +17,7 @@ class Telebot:
 
     async def send_msg(self, msg, user_id, img_data):
         logging.info(f'Send msg to: {user_id}')
-        await self.bot.send_photo(user_id, img_data, msg['description'])
+        await self.bot.send_photo(user_id, img_data, msg)
         await asyncio.sleep(10)
 
     async def handle_message(self, message: types.Message):
