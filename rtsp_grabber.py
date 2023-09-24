@@ -78,6 +78,7 @@ class SubprocessGrabber():
             self.prev_frame = frame
             return frame
         
+        # Сделать условие выполняемым и протестировать
         if self.broken_frames >= self.max_broken_frames:
             logger.error(f'Broken frame series detected! Count: {self.broken_frames}')
             self.stop()
