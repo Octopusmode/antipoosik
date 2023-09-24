@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
 
 class SubprocessGrabber():
-    def __init__(self, in_stream, timeout=10, max_dublicates=None):
+    def __init__(self, in_stream, timeout=10, max_dublicates=None, max_broken_frames=30):
         self.in_stream = in_stream
         self.width = 0
         self.height = 0
@@ -20,6 +20,8 @@ class SubprocessGrabber():
         self.prev_frame = None
         self.dublicate_count = 0
         self.max_dublicates = max_dublicates
+        self.broken_frames = 0
+        self.max_broken_frames = max_broken_frames
         ret = False
         self.width, self.height = 0, 0
         self.process = None
@@ -52,7 +54,7 @@ class SubprocessGrabber():
         # Open sub-process that gets in_stream as input and uses stdout as an output PIPE.
         self.process = sp.Popen(self.ffmpeg_cmd, stdout=sp.PIPE)
         
-    def get_frame(self):
+    def get_frame(self, blank_image=None):
         start_time = time.time()
         
         # Read raw frame from stdout PIPE
@@ -60,8 +62,9 @@ class SubprocessGrabber():
         self.grab_time = time.time() - start_time
         
         if len(raw_frame) != (self.width*self.height*3):
-            logger.error('Error reading frame!')
-            return None
+            self.broken_frames += 1
+            logger.error(f'Error reading frame! {self.broken_frames=}')
+            return blank_image
         else:
             if self.prev_frame is not None:
                 if np.array_equal(self.prev_frame, raw_frame):
@@ -74,6 +77,19 @@ class SubprocessGrabber():
             frame = np.frombuffer(raw_frame, dtype=np.uint8).reshape((self.height, self.width, 3))
             self.prev_frame = frame
             return frame
+        
+        if self.broken_frames >= self.max_broken_frames:
+            logger.error(f'Broken frame series detected! Count: {self.broken_frames}')
+            self.stop()
+            logger.info(f'Trying to restart stream...')
+            sleep(10)
+            self.start()
+            sleep(5)
+            if self.is_alive():
+                logger.info(f'Stream restarted!')
+                self.broken_frames = 0
+            self.prev_frame = None
+            return blank_image
         
     def stop(self, timeout=10):
         self.process.terminate()
