@@ -10,7 +10,9 @@ from inference import Darknet as Net
 import numpy as np
 import cv2
 
-from tools import resize_image, EventContainer as Event
+from modules.tools import resize_image
+from modules.alarms import Alarm
+from modules.events import EventContainer as Event
 
 import time
 from datetime import datetime
@@ -98,19 +100,14 @@ async def main():
     render=None
     render_time: float = .0
     frame_count = 0
-    heating_frame_count = 10
-    
-    # Debug variables
-    afk_status_old = False
-    chair_status_old = False
-    afk_alarm = False
-    afk_alarm_old = False
-    afk_timer = .0
+    heating_frame_count = 40
+
     alarm_timeout = 10
-    afk_timer_status = False
-    afk_timer_status_old = False
-    afk_alarm_status = False
-    afk_alarm_status_old = False
+    
+    afk_status, afk_status_old = False, False
+    chair_status, chair_status_old = False, False
+    alarm_status, alarm_status_old = False, False
+
     stream.start(framerate=framerate, timeout=30)
     
     while True:        
@@ -167,41 +164,28 @@ async def main():
         render_start = time.time()
         render = cv2.putText(frame, f'{current_time}', (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{person_count} people', (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{afk_alarm=}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{afk_alarm=}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{afk_timer_status=}', (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{afk_timer=}', (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{afk_timer=}', (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{afk_status=}', (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{chair_status=}', (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{afk_alarm_status=}', (20, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        render = cv2.putText(render, f'{alarm_status=}', (20, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{cycle_time=}', (20, 220), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{render_time=}', (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render_time = time.time() - render_start
         
         if frame_count > heating_frame_count:
             # Alarm logic
-            afk_status = afk.check_event(0)
-            chair_status = chait_exist.check_event(1)
+            afk_status, chair_status = afk.check_event(0), chait_exist.check_event(1)
+            
             if afk_status != afk_status_old or chair_status != chair_status_old:
                 msg = f'{current_time} Some thing changed: Person leave={afk_status} Chair in place={chair_status}\n'
                 logger.debug(msg)
                 if render is not None:
                     await alarm(render, msg)
-            afk_status_old = afk_status
-            chair_status_old = chair_status
+            afk_status_old, chair_status_old = afk_status, chair_status
             
-            if afk_status and not chair_status:
-                afk_alarm = True
-            else:
-                afk_alarm = False
-                afk_timer = .0
-            
-            if afk_alarm and not int(afk_timer) > 0:
-                afk_timer = time.time()
-                
-            if time.time() - afk_timer > alarm_timeout:
-                afk_alarm_status = True
-            else:
-                afk_alarm_status = False
+
                 
             if afk_alarm != afk_alarm_old:
                 msg = f'{current_time} {afk_alarm=} Сработал тревожный таймер\n'
@@ -214,12 +198,12 @@ async def main():
                 msg = f'{current_time} TIMER {afk_timer_status=}\n'
             afk_timer_status_old = afk_timer_status
             
-            if afk_alarm_status != afk_alarm_status_old:
+            if alarm_status != alarm_status_old:
                 msg = f'{current_time} ALARM {afk_alarm_status=}\n'
                 logger.debug(msg)
                 if render is not None:
                     await alarm(render, msg)
-            afk_alarm_status_old = afk_alarm_status
+            alarm_status_old = afk_alarm_status
     
         cycle_time = time.time() - cycle_start
         

@@ -30,19 +30,20 @@ class Telebot:
         await message.reply(f"Ваш user_id: {message.from_user.id}")
 
 
-bot = Bot(os.getenv('BOT_TOKEN'))
-chat_id = os.getenv('CHAT_ID')
-dp = Dispatcher(bot)
-telebot = Telebot(bot, dp, chat_id)
 
-dp.register_message_handler(telebot.handle_message)
-dp.register_message_handler(telebot.start, commands=['start'])
-
-async def main():
-    await dp.start_polling()
-    while True:
-        await telebot.send_hello()
-        await asyncio.sleep(10)
 
 if __name__ == '__main__':
+    async def main():
+        await dp.start_polling()
+        while True:
+            await telebot.send_hello()
+            await asyncio.sleep(10)
+    
+    bot = Bot(os.getenv('BOT_TOKEN'))
+    chat_id = os.getenv('CHAT_ID')
+    dp = Dispatcher(bot)
+    telebot = Telebot(bot, dp, chat_id)
+
+    dp.register_message_handler(telebot.handle_message)
+    dp.register_message_handler(telebot.start, commands=['start'])
     asyncio.run(main())

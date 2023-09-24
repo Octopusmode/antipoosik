@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 from time import time
 
-from tools import EventContainer as Event
-from tools import Timer
+from modules.events import EventContainer as Event
+from modules.tools import Timer
 
 blank_image = np.zeros(shape=(600, 800, 3), dtype=np.uint8)
 

@@ -16,8 +16,8 @@ import os
 
 # bot = TelegramBot(token=os.getenv('TOKEN'))
 
-from tools import resize_image, EventContainer as Event
-from tools import Timer
+from modules.tools import resize_image, EventContainer as Event
+from modules.tools import Timer
 
 from time import time
 from datetime import datetime
