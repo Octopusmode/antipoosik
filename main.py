@@ -178,32 +178,32 @@ async def main():
             # Alarm logic
             afk_status, chair_status = afk.check_event(0), chait_exist.check_event(1)
             
-            if afk_status != afk_status_old or chair_status != chair_status_old:
-                msg = f'{current_time} Some thing changed: Person leave={afk_status} Chair in place={chair_status}\n'
-                logger.debug(msg)
-                if render is not None:
-                    await alarm(render, msg)
-            afk_status_old, chair_status_old = afk_status, chair_status
+            # if afk_status != afk_status_old or chair_status != chair_status_old:
+            #     msg = f'{current_time} Some thing changed: Person leave={afk_status} Chair in place={chair_status}\n'
+            #     logger.debug(msg)
+            #     if render is not None:
+            #         await alarm(render, msg)
+            # afk_status_old, chair_status_old = afk_status, chair_status
             
 
                 
-            if afk_alarm != afk_alarm_old:
-                msg = f'{current_time} {afk_alarm=} Сработал тревожный таймер\n'
-                logging.info(msg)
-            afk_alarm_old = afk_alarm
+            # if afk_alarm != afk_alarm_old:
+            #     msg = f'{current_time} {afk_alarm=} Сработал тревожный таймер\n'
+            #     logging.info(msg)
+            # afk_alarm_old = afk_alarm
             
-            afk_timer_status = int(afk_timer) > 0
+            # afk_timer_status = int(afk_timer) > 0
             
-            if afk_timer_status != afk_timer_status_old:
-                msg = f'{current_time} TIMER {afk_timer_status=}\n'
-            afk_timer_status_old = afk_timer_status
+            # if afk_timer_status != afk_timer_status_old:
+            #     msg = f'{current_time} TIMER {afk_timer_status=}\n'
+            # afk_timer_status_old = afk_timer_status
             
-            if alarm_status != alarm_status_old:
-                msg = f'{current_time} ALARM {afk_alarm_status=}\n'
-                logger.debug(msg)
-                if render is not None:
-                    await alarm(render, msg)
-            alarm_status_old = afk_alarm_status
+            # if alarm_status != alarm_status_old:
+            #     msg = f'{current_time} ALARM {afk_alarm_status=}\n'
+            #     logger.debug(msg)
+            #     if render is not None:
+            #         await alarm(render, msg)
+            # alarm_status_old = afk_alarm_status
     
         cycle_time = time.time() - cycle_start
         

@@ -64,6 +64,18 @@ class SubprocessGrabber():
         if len(raw_frame) != (self.width*self.height*3):
             self.broken_frames += 1
             logger.error(f'Error reading frame! {self.broken_frames=}')
+            if self.broken_frames >= self.max_broken_frames:
+                logger.error(f'Broken frame series detected! Count: {self.broken_frames}')
+                self.stop()
+                logger.info(f'Trying to restart stream (5 sec)...')
+                time.sleep(10)
+                logger.info(f'Trying to start stream (10 sec)...')
+                self.start()
+                time.sleep(5)
+                if self.is_alive():
+                    logger.info(f'Stream restarted!')
+                    self.broken_frames = 0
+                self.prev_frame = None
             return blank_image
         else:
             if self.prev_frame is not None:
@@ -79,18 +91,7 @@ class SubprocessGrabber():
             return frame
         
         # Сделать условие выполняемым и протестировать
-        if self.broken_frames >= self.max_broken_frames:
-            logger.error(f'Broken frame series detected! Count: {self.broken_frames}')
-            self.stop()
-            logger.info(f'Trying to restart stream...')
-            sleep(10)
-            self.start()
-            sleep(5)
-            if self.is_alive():
-                logger.info(f'Stream restarted!')
-                self.broken_frames = 0
-            self.prev_frame = None
-            return blank_image
+
         
     def stop(self, timeout=10):
         self.process.terminate()
