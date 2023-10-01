@@ -23,6 +23,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.utils import exceptions
 from telebot import Telebot
 
+RENDER_ENABLED = True
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
 
@@ -107,6 +109,8 @@ async def main():
     afk_status, afk_status_old = False, False
     chair_status, chair_status_old = False, False
     alarm_status, alarm_status_old = False, False
+    
+    afk_alarm = Alarm(timeout=alarm_timeout)
 
     stream.start(framerate=framerate, timeout=30)
     
@@ -165,18 +169,29 @@ async def main():
         render = cv2.putText(frame, f'{current_time}', (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render = cv2.putText(render, f'{person_count} people', (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         # render = cv2.putText(render, f'{afk_alarm=}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{afk_timer_status=}', (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{afk_timer_status=}', (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         # render = cv2.putText(render, f'{afk_timer=}', (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{afk_status=}', (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{chair_status=}', (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{alarm_status=}', (20, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{cycle_time=}', (20, 220), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        render = cv2.putText(render, f'{render_time=}', (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{afk_status=}', (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{chair_status=}', (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{alarm_status=}', (20, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{cycle_time=}', (20, 220), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        # render = cv2.putText(render, f'{render_time=}', (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         render_time = time.time() - render_start
+        
+        afk_status = afk.check_event(0)
+        chair_status = chait_exist.check_event(1)
         
         if frame_count > heating_frame_count:
             # Alarm logic
-            afk_status, chair_status = afk.check_event(0), chait_exist.check_event(1)
+            
+            if afk_status != afk_status_old or chair_status != chair_status_old:
+                logger.debug(f'{current_time} {afk_status=} {chair_status=}')
+                afk_status_old, chair_status_old = afk_status, chair_status
+            
+            afk_alarm.process_inputs([afk.check_event(0), chait_exist.check_event(0)])
+            
+            if afk_alarm.is_state_changed():
+                logger.debug(f'{current_time} {afk_alarm.get_time_elapsed()=} {afk_alarm.is_triggered()=}')
             
             # if afk_status != afk_status_old or chair_status != chair_status_old:
             #     msg = f'{current_time} Some thing changed: Person leave={afk_status} Chair in place={chair_status}\n'
@@ -204,6 +219,12 @@ async def main():
             #     if render is not None:
             #         await alarm(render, msg)
             # alarm_status_old = afk_alarm_status
+        
+        if RENDER_ENABLED:
+            cv2.imshow('frame', render)
+        
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
     
         cycle_time = time.time() - cycle_start
         
