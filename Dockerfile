@@ -6,9 +6,9 @@ ARG USER_ID=5000
 
 # Установка зависимостей для сборки OpenCV с поддержкой GStreamer
 RUN apt update
-RUN apt install build-essential
-RUN apt install ffmpeg
-RUN apt install cmake
+RUN apt install -y build-essential --fix-missing
+RUN apt install -y ffmpeg --fix-missing
+RUN apt install -y cmake
 RUN apt install -y libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
     gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
@@ -16,8 +16,12 @@ RUN apt install -y libgstreamer1.0-dev \
     gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio \
     python3-dev python3-pip python3-gi python3-gst-1.0 libgirepository1.0-dev libcairo2-dev python3-venv \
     gstreamer1.0-tools gstreamer1.0-plugins-base-apps
-RUN apt clean
+RUN apt install -y git
+RUN apt -y clean
 RUN rm -rf /var/lib/apt/lists/*
+
+# Установка DNS-серверов
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
 # Клонирование репозиториев OpenCV и OpenCV Contrib
 RUN git clone https://github.com/opencv/opencv.git && \
@@ -58,3 +62,4 @@ RUN python3 -m pip install --upgrade wheel pip setuptools
 RUN python3 -m pip install --no-cache -r requirements.txt
 
 CMD [ "/bin/sleep", "3600" ]
+
